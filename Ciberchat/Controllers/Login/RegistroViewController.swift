@@ -17,7 +17,7 @@ class RegistroViewController: UIViewController {
     }()
     private let imageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.image = UIImage(systemName: "person")
+        imageView.image = UIImage(systemName: "person.circle")
         imageView.tintColor = .gray
         imageView.contentMode = .scaleAspectFit
         imageView.layer.masksToBounds = true
@@ -174,20 +174,31 @@ class RegistroViewController: UIViewController {
         
         //Firebase Login
         
-        FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password, completion: { authResult, error in
-            guard let result = authResult, error == nil else {
-                print("Error creando usuario")
+        DatabaseManager.shared.usuarioExiste(with: email, completion: {[weak self] exists in
+            guard let strongSelf = self else {
                 return
             }
-            
-            let user = result.user
-            print("Usuario creado: \(user)")
+            guard !exists else {
+                //Usuario ya existe
+                strongSelf.alertaErrorRegistro(message: "El email ingresado ya se encuentra registrado en nuestra base de datos.")
+                return
+            }
+            FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password, completion: {authResult, error in
+                
+                guard authResult != nil, error == nil else {
+                    print("Error creando usuario")
+                    return
+                }
+                
+                DatabaseManager.shared.insertarUsuario(with: CiberchatUsuario(nombres: nombres, apellidos: apellidos, email: email))
+                strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+            })
         })
     }
     
-    func alertaErrorRegistro(){
+    func alertaErrorRegistro(message: String = "Porfavor, ingrese todods sus datos para crear su cuenta."){
         let alerta = UIAlertController(title: "Error en Registro",
-                                       message: "Porfavor, ingrese la informacion necesaria para crear su cuenta.",
+                                       message: message,
                                        preferredStyle: .alert)
         alerta.addAction(UIAlertAction(title: "Cerrar", style: .cancel, handler: nil))
         present(alerta, animated: true)

@@ -21,6 +21,7 @@
 		120EF0E3253BD79200F73AB7 /* PerfilViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0E2253BD79200F73AB7 /* PerfilViewController.swift */; };
 		120EF0E8253BE06C00F73AB7 /* Extensiones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0E7253BE06C00F73AB7 /* Extensiones.swift */; };
 		12742E90253D0D5B007961AC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 12742E8F253D0D5B007961AC /* GoogleService-Info.plist */; };
+		12A3687C253DF7DD00C3A9DE /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12A3687B253DF7DD00C3A9DE /* DatabaseManager.swift */; };
 		F796A00F35298A2649737C87 /* Pods_Ciberchat.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D2B054A9F41D57A26790A6B /* Pods_Ciberchat.framework */; };
 /* End PBXBuildFile section */
 
@@ -41,6 +42,7 @@
 		120EF0E2253BD79200F73AB7 /* PerfilViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerfilViewController.swift; sourceTree = "<group>"; };
 		120EF0E7253BE06C00F73AB7 /* Extensiones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensiones.swift; sourceTree = "<group>"; };
 		12742E8F253D0D5B007961AC /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		12A3687B253DF7DD00C3A9DE /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
 		237009A52A815474D4A4EBB8 /* Pods-Ciberchat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ciberchat.release.xcconfig"; path = "Target Support Files/Pods-Ciberchat/Pods-Ciberchat.release.xcconfig"; sourceTree = "<group>"; };
 		5D2B054A9F41D57A26790A6B /* Pods_Ciberchat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Ciberchat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		748DF7CC237EF1665EE90D94 /* Pods-Ciberchat.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ciberchat.debug.xcconfig"; path = "Target Support Files/Pods-Ciberchat/Pods-Ciberchat.debug.xcconfig"; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 				120EF0B6253BD34100F73AB7 /* AppDelegate.swift */,
 				120EF0B8253BD34100F73AB7 /* SceneDelegate.swift */,
 				120EF0E7253BE06C00F73AB7 /* Extensiones.swift */,
+				12A3687B253DF7DD00C3A9DE /* DatabaseManager.swift */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -287,6 +290,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				120EF0E0253BD77E00F73AB7 /* NuevaConversacionViewController.swift in Sources */,
+				12A3687C253DF7DD00C3A9DE /* DatabaseManager.swift in Sources */,
 				120EF0D4253BD69600F73AB7 /* LoginViewController.swift in Sources */,
 				120EF0BB253BD34100F73AB7 /* ConversacionesViewController.swift in Sources */,
 				120EF0E8253BE06C00F73AB7 /* Extensiones.swift in Sources */,
