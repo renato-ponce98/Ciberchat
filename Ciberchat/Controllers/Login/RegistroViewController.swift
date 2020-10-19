@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import FirebaseAuth
 
 class RegistroViewController: UIViewController {
     
@@ -19,6 +20,9 @@ class RegistroViewController: UIViewController {
         imageView.image = UIImage(systemName: "person")
         imageView.tintColor = .gray
         imageView.contentMode = .scaleAspectFit
+        imageView.layer.masksToBounds = true
+        imageView.layer.borderWidth = 2
+        imageView.layer.borderColor = UIColor.lightGray.cgColor
         return imageView
     }()
     private let emailField: UITextField = {
@@ -132,7 +136,7 @@ class RegistroViewController: UIViewController {
     }
     
     @objc private func dioClickCambiarImagen(){
-        print("Cambiar iamgen seleccionada")
+        presentPhotoActionSheet()
     }
     
     override func viewDidLayoutSubviews() {
@@ -141,6 +145,7 @@ class RegistroViewController: UIViewController {
         
         let size = scrollView.width/3
         imageView.frame = CGRect(x: (scrollView.width-size)/2, y: 20, width: size, height: size)
+        imageView.layer.cornerRadius = imageView.width/2.0
         nombresField.frame = CGRect(x: 30, y: imageView.bottom+10, width: scrollView.width-60, height: 52)
         apellidosField.frame = CGRect(x: 30, y: nombresField.bottom+10, width: scrollView.width-60, height: 52)
         emailField.frame = CGRect(x: 30, y: apellidosField.bottom+10, width: scrollView.width-60, height: 52)
@@ -168,6 +173,16 @@ class RegistroViewController: UIViewController {
         }
         
         //Firebase Login
+        
+        FirebaseAuth.Auth.auth().createUser(withEmail: email, password: password, completion: { authResult, error in
+            guard let result = authResult, error == nil else {
+                print("Error creando usuario")
+                return
+            }
+            
+            let user = result.user
+            print("Usuario creado: \(user)")
+        })
     }
     
     func alertaErrorRegistro(){
@@ -195,4 +210,50 @@ extension RegistroViewController: UITextFieldDelegate{
         }
         return true
     }
+}
+
+extension RegistroViewController: UIImagePickerControllerDelegate, UINavigationControllerDelegate{
+    func presentPhotoActionSheet(){
+        let actionSheet = UIAlertController(title:"Imagen de perfil",
+                                            message: "De donde te gustaria elegir una foto?",
+                                            preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Cancelar", style: .cancel, handler: nil))
+        actionSheet.addAction(UIAlertAction(title: "Tomar una Foto", style: .default, handler: {[weak self] _ in
+            self?.presentarCamara()
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Escoger una Foto", style: .default, handler: {[weak self] _ in
+            self?.presentarGaleria()
+        }))
+        
+        present(actionSheet, animated: true)
+    }
+    
+    func presentarCamara(){
+        let vc  = UIImagePickerController()
+        vc.sourceType = .camera
+        vc.delegate = self
+        vc.allowsEditing = true
+        present(vc, animated: true)
+    }
+    func presentarGaleria(){
+        let vc  = UIImagePickerController()
+        vc.sourceType = .photoLibrary
+        vc.delegate = self
+        vc.allowsEditing = true
+        present(vc, animated: true)
+    }
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        picker.dismiss(animated: true, completion: nil)
+        print(info)
+        
+        guard let selectedImage = info[UIImagePickerController.InfoKey.editedImage] as? UIImage else {
+            return
+        }
+        
+        self.imageView.image = selectedImage
+    }
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        picker.dismiss(animated: true, completion: nil)
+    }
+    
 }

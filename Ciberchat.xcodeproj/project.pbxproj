@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -20,6 +20,8 @@
 		120EF0E0253BD77E00F73AB7 /* NuevaConversacionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0DF253BD77E00F73AB7 /* NuevaConversacionViewController.swift */; };
 		120EF0E3253BD79200F73AB7 /* PerfilViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0E2253BD79200F73AB7 /* PerfilViewController.swift */; };
 		120EF0E8253BE06C00F73AB7 /* Extensiones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0E7253BE06C00F73AB7 /* Extensiones.swift */; };
+		12742E90253D0D5B007961AC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 12742E8F253D0D5B007961AC /* GoogleService-Info.plist */; };
+		F796A00F35298A2649737C87 /* Pods_Ciberchat.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D2B054A9F41D57A26790A6B /* Pods_Ciberchat.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,6 +40,10 @@
 		120EF0DF253BD77E00F73AB7 /* NuevaConversacionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NuevaConversacionViewController.swift; sourceTree = "<group>"; };
 		120EF0E2253BD79200F73AB7 /* PerfilViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerfilViewController.swift; sourceTree = "<group>"; };
 		120EF0E7253BE06C00F73AB7 /* Extensiones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensiones.swift; sourceTree = "<group>"; };
+		12742E8F253D0D5B007961AC /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		237009A52A815474D4A4EBB8 /* Pods-Ciberchat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ciberchat.release.xcconfig"; path = "Target Support Files/Pods-Ciberchat/Pods-Ciberchat.release.xcconfig"; sourceTree = "<group>"; };
+		5D2B054A9F41D57A26790A6B /* Pods_Ciberchat.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Ciberchat.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		748DF7CC237EF1665EE90D94 /* Pods-Ciberchat.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ciberchat.debug.xcconfig"; path = "Target Support Files/Pods-Ciberchat/Pods-Ciberchat.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -45,6 +51,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F796A00F35298A2649737C87 /* Pods_Ciberchat.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -56,6 +63,8 @@
 			children = (
 				120EF0B5253BD34100F73AB7 /* Ciberchat */,
 				120EF0B4253BD34100F73AB7 /* Products */,
+				5A2133E8F4FA6DA0D79556BC /* Pods */,
+				4E11E59D77450FE17345AE6E /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -70,6 +79,7 @@
 		120EF0B5253BD34100F73AB7 /* Ciberchat */ = {
 			isa = PBXGroup;
 			children = (
+				12742E8F253D0D5B007961AC /* GoogleService-Info.plist */,
 				120EF0D0253BD52600F73AB7 /* Resources */,
 				120EF0CF253BD51600F73AB7 /* ViewModels */,
 				120EF0CE253BD50A00F73AB7 /* Models */,
@@ -144,6 +154,23 @@
 			path = Login;
 			sourceTree = "<group>";
 		};
+		4E11E59D77450FE17345AE6E /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5D2B054A9F41D57A26790A6B /* Pods_Ciberchat.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		5A2133E8F4FA6DA0D79556BC /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				748DF7CC237EF1665EE90D94 /* Pods-Ciberchat.debug.xcconfig */,
+				237009A52A815474D4A4EBB8 /* Pods-Ciberchat.release.xcconfig */,
+			);
+			path = Pods;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -151,9 +178,11 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 120EF0C7253BD34300F73AB7 /* Build configuration list for PBXNativeTarget "Ciberchat" */;
 			buildPhases = (
+				D5474DCC5D814CC5C236D1A5 /* [CP] Check Pods Manifest.lock */,
 				120EF0AF253BD34100F73AB7 /* Sources */,
 				120EF0B0253BD34100F73AB7 /* Frameworks */,
 				120EF0B1253BD34100F73AB7 /* Resources */,
+				5049DD55BEDB5C0A7B297B73 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -202,12 +231,55 @@
 			buildActionMask = 2147483647;
 			files = (
 				120EF0C3253BD34300F73AB7 /* LaunchScreen.storyboard in Resources */,
+				12742E90253D0D5B007961AC /* GoogleService-Info.plist in Resources */,
 				120EF0C0253BD34300F73AB7 /* Assets.xcassets in Resources */,
 				120EF0BE253BD34100F73AB7 /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		5049DD55BEDB5C0A7B297B73 /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Ciberchat/Pods-Ciberchat-frameworks-${CONFIGURATION}-input-files.xcfilelist",
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputFileListPaths = (
+				"${PODS_ROOT}/Target Support Files/Pods-Ciberchat/Pods-Ciberchat-frameworks-${CONFIGURATION}-output-files.xcfilelist",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Ciberchat/Pods-Ciberchat-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		D5474DCC5D814CC5C236D1A5 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-Ciberchat-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		120EF0AF253BD34100F73AB7 /* Sources */ = {
@@ -367,6 +439,7 @@
 		};
 		120EF0C8253BD34300F73AB7 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 748DF7CC237EF1665EE90D94 /* Pods-Ciberchat.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -385,6 +458,7 @@
 		};
 		120EF0C9253BD34300F73AB7 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 237009A52A815474D4A4EBB8 /* Pods-Ciberchat.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
