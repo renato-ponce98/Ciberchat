@@ -7,6 +7,7 @@
 
 import UIKit
 import FirebaseAuth
+import FBSDKLoginKit
 
 class LoginViewController: UIViewController {
     
@@ -64,6 +65,12 @@ class LoginViewController: UIViewController {
         button.titleLabel?.font = .systemFont(ofSize: 20, weight: .bold)
         return button
     }()
+    
+    private let loginFBButton: FBLoginButton = {
+        let button = FBLoginButton()
+        button.permissions = ["email, public_profile"]
+        return button
+    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -80,12 +87,16 @@ class LoginViewController: UIViewController {
         emailField.delegate = self
         passwordField.delegate = self
         
+        loginFBButton.delegate = self
+        
         // Add subviews
         view.addSubview(scrollView)
         scrollView.addSubview(imageView)
         scrollView.addSubview(emailField)
         scrollView.addSubview(passwordField)
         scrollView.addSubview(loginButton)
+        scrollView.addSubview(loginFBButton)
+
     }
     
     override func viewDidLayoutSubviews() {
@@ -97,6 +108,7 @@ class LoginViewController: UIViewController {
         emailField.frame = CGRect(x: 30, y: imageView.bottom+10, width: scrollView.width-60, height: 52)
         passwordField.frame = CGRect(x: 30, y: emailField.bottom+10, width: scrollView.width-60, height: 52)
         loginButton.frame = CGRect(x: 30, y: passwordField.bottom+10, width: scrollView.width-60, height: 52)
+        loginFBButton.frame = CGRect(x: 30, y: loginButton.bottom+10, width: scrollView.width-60, height: 52)
     }
     
     @objc private func dioClickLogin(){
@@ -150,5 +162,65 @@ extension LoginViewController: UITextFieldDelegate{
             dioClickLogin()
         }
         return true
+    }
+}
+
+extension LoginViewController: LoginButtonDelegate {
+    func loginButtonDidLogOut(_ loginButton: FBLoginButton) {
+        //
+    }
+    func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
+        guard let token = result?.token?.tokenString else{
+            print("Hubo un error al iniciar sesion con Facebook")
+            return
+        }
+        
+        let facebookReques = FBSDKLoginKit.GraphRequest(graphPath: "me",
+                                                        parameters: ["fields": "email, name"],
+                                                        tokenString: token,
+                                                        version: nil,
+                                                        httpMethod: .get)
+        facebookReques.start(completionHandler: {_, result, error in
+            guard let result = result as? [String: Any], error == nil else {
+                print("Fallo al obtener datos de facebook")
+                return
+            }
+            print("\(result)")
+            
+            
+            guard let nombreUsuario = result["name"] as? String,
+                  let email = result["email"] as? String else{
+                print("Hubo un error al obtenet email y nombre de usuario de facebook")
+                return
+            }
+            
+            let nombreComponents = nombreUsuario.components(separatedBy: " ")
+            guard nombreComponents.count == 3 else {
+                return
+            }
+            
+            let nombres = nombreComponents[0]
+            let apellidos = nombreComponents[1]
+            
+            DatabaseManager.shared.usuarioExiste(with: email, completion: { exists in
+                if !exists {
+                    DatabaseManager.shared.insertarUsuario(with: CiberchatUsuario(nombres: nombres, apellidos: apellidos, email: email))
+                }
+            })
+            
+            let credential = FacebookAuthProvider.credential(withAccessToken: token)
+            FirebaseAuth.Auth.auth().signIn(with: credential, completion: {[weak self] authResult, error in
+                guard let strongSelf = self else{
+                    return
+                }
+                guard authResult != nil, error == nil else {
+                    print("Inicio de sesion con facebook fallida.")
+                    return
+                }
+                
+                print("Inicio de sesion exitoso")
+                strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+            })
+        })
     }
 }
