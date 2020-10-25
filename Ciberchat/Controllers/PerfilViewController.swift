@@ -7,6 +7,8 @@
 
 import UIKit
 import FirebaseAuth
+import FBSDKLoginKit
+import GoogleSignIn
 
 class PerfilViewController: UIViewController {
     
@@ -49,6 +51,12 @@ extension PerfilViewController: UITableViewDelegate, UITableViewDataSource {
                                         guard let strongSelf = self else {
                                             return
                                         }
+                                        
+                                        // Cerrar sesion en facebook
+                                        FBSDKLoginKit.LoginManager().logOut()
+                                        
+                                        // Cerrar sesion en google
+                                        GIDSignIn.sharedInstance()?.signOut()
                                         
                                         do {
                                             try FirebaseAuth.Auth.auth().signOut()
