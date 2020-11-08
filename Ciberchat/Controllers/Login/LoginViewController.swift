@@ -170,6 +170,8 @@ class LoginViewController: UIViewController {
             }
             
             let user = result.user
+            
+            UserDefaults.standard.set(email, forKey: "email")
             print("Usuario Autenticado: \(user)")
             strongSelf.navigationController?.dismiss(animated: true, completion: nil)
         })
@@ -213,7 +215,7 @@ extension LoginViewController: LoginButtonDelegate {
         }
         
         let facebookReques = FBSDKLoginKit.GraphRequest(graphPath: "me",
-                                                        parameters: ["fields": "email, name"],
+                                                        parameters: ["fields": "email, first_name, last_name, picture.type(large)"],
                                                         tokenString: token,
                                                         version: nil,
                                                         httpMethod: .get)
@@ -224,24 +226,48 @@ extension LoginViewController: LoginButtonDelegate {
             }
             print("\(result)")
             
-            
-            guard let nombreUsuario = result["name"] as? String,
-                  let email = result["email"] as? String else{
+            guard let nombres = result["first_name"] as? String,
+                  let apellidos = result["last_name"] as? String,
+                  let email = result["email"] as? String,
+                  let picture = result["picture"] as? [String: Any],
+                  let data = picture["data"] as? [String: Any],
+                  let pictureUrl = data["url"] as? String else{
                 print("Hubo un error al obtenet email y nombre de usuario de facebook")
                 return
             }
             
-            let nombreComponents = nombreUsuario.components(separatedBy: " ")
-            guard nombreComponents.count == 3 else {
-                return
-            }
-            
-            let nombres = nombreComponents[0]
-            let apellidos = nombreComponents[1]
+            UserDefaults.standard.set(email, forKey: "email")
             
             DatabaseManager.shared.usuarioExiste(with: email, completion: { exists in
                 if !exists {
-                    DatabaseManager.shared.insertarUsuario(with: CiberchatUsuario(nombres: nombres, apellidos: apellidos, email: email))
+                    let ciberchatUsuario = CiberchatUsuario(nombres: nombres, apellidos: apellidos, email: email)
+                    DatabaseManager.shared.insertarUsuario(with: ciberchatUsuario, termino: {success in
+                        if success {
+                            guard let url = URL(string: pictureUrl) else {
+                                return
+                            }
+                            URLSession.shared.dataTask(with: url, completionHandler: {data, _, _ in
+                                guard let data = data else{
+                                    return
+                                }
+                                
+                                print("Descargando data de facebook")
+                                //subir imagen
+                                let nombreArchivo = ciberchatUsuario.fotoPerfilNombreArchivo
+                                StorageManager.shared.subirImagenPerfil(with: data,
+                                                                        nombreArchivo: nombreArchivo,
+                                                                        termino: {resultados in
+                                                                            switch resultados {
+                                                                            case .success(let downloadUrl):
+                                                                                UserDefaults.standard.set(downloadUrl, forKey: "perfil_imagen_url")
+                                                                                print(downloadUrl)
+                                                                            case .failure(let error):
+                                                                                print("Sorage manager error: \(error)")
+                                                                            }
+                                                                        })
+                            }).resume()
+                        }
+                    })
                 }
             })
             

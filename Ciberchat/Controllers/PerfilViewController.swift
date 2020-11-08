@@ -21,6 +21,56 @@ class PerfilViewController: UIViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.tableHeaderView = crearTableHeader()
+    }
+    
+    func crearTableHeader() -> UIView? {
+        guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
+            return nil
+        }
+        
+        let safeEmail = DatabaseManager.safeEmail(email: email)
+        let filename = safeEmail + "_perfil_imagen.png"
+        
+        let path = "images/"+filename
+        
+        let headerview = UIView(frame: CGRect(x: 0, y: 0, width: self.view.width, height: 300))
+        headerview.backgroundColor = .link
+        
+        let imageView = UIImageView(frame: CGRect(x: (headerview.width-150) / 2, y: 75, width: 150, height: 150))
+        
+        imageView.contentMode = .scaleAspectFill
+        imageView.backgroundColor = .white
+        imageView.layer.borderColor = UIColor.white.cgColor
+        imageView.layer.borderWidth = 3
+        imageView.layer.cornerRadius = imageView.width / 2
+        imageView.layer.masksToBounds = true
+        
+        headerview.addSubview(imageView)
+        
+        StorageManager.shared.downloadURL(for: path, completion: { [weak self] resultado in
+            switch resultado {
+            case .success(let url):
+                self?.descargarImagen(imageView: imageView, url: url)
+            case .failure(let error):
+                print("Fallo al obtener url de descarga: \(error)")
+            }
+        })
+        
+        return headerview
+    }
+    
+    func descargarImagen(imageView: UIImageView, url: URL){
+        URLSession.shared.dataTask(with: url, completionHandler: {data, _ , error in
+            guard let data = data, error == nil else {
+                return
+            }
+            
+            DispatchQueue.main.async{
+                let image = UIImage(data: data)
+                imageView.image = image
+            }
+        }).resume()
     }
 
 }

@@ -63,11 +63,43 @@ class AppDelegate: UIResponder, UIApplicationDelegate, GIDSignInDelegate {
             return
         }
         
+        UserDefaults.standard.set(email, forKey: "email")
+        
         DatabaseManager.shared.usuarioExiste(with: email, completion: { exists in
             if !exists {
-                DatabaseManager.shared.insertarUsuario(with: CiberchatUsuario(nombres: nombre,
-                                                                              apellidos: apellido,
-                                                                              email: email))
+                let ciberchatUsuario = CiberchatUsuario(nombres: nombre,
+                                                        apellidos: apellido,
+                                                        email: email)
+                DatabaseManager.shared.insertarUsuario(with: ciberchatUsuario, termino: {success in
+                    if success {
+                        //subir imagen
+                        
+                        if user.profile.hasImage{
+                            guard let url = user.profile.imageURL(withDimension: 200) else {
+                                return
+                            }
+                            
+                            URLSession.shared.dataTask(with: url, completionHandler: {data, _ , _ in
+                                guard let data = data else {
+                                    return
+                                }
+                                let nombreArchivo = ciberchatUsuario.fotoPerfilNombreArchivo
+                                StorageManager.shared.subirImagenPerfil(with: data,
+                                                                        nombreArchivo: nombreArchivo,
+                                                                        termino: {resultados in
+                                                                            switch resultados {
+                                                                            case .success(let downloadUrl):
+                                                                                UserDefaults.standard.set(downloadUrl, forKey: "perfil_imagen_url")
+                                                                                print(downloadUrl)
+                                                                            case .failure(let error):
+                                                                                print("Sorage manager error: \(error)")
+                                                                            }
+                                                                        })
+                            }).resume()
+                            
+                        }
+                    }
+                })
             }
         })
         

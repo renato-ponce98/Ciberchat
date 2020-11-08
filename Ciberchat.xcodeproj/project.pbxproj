@@ -21,6 +21,7 @@
 		120EF0E3253BD79200F73AB7 /* PerfilViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0E2253BD79200F73AB7 /* PerfilViewController.swift */; };
 		120EF0E8253BE06C00F73AB7 /* Extensiones.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0E7253BE06C00F73AB7 /* Extensiones.swift */; };
 		123A9CA425463DE30092952E /* ChatViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 123A9CA325463DE30092952E /* ChatViewController.swift */; };
+		12558DFA2558548E003FAB8D /* StorageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12558DF92558548E003FAB8D /* StorageManager.swift */; };
 		12742E90253D0D5B007961AC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 12742E8F253D0D5B007961AC /* GoogleService-Info.plist */; };
 		12A3687C253DF7DD00C3A9DE /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12A3687B253DF7DD00C3A9DE /* DatabaseManager.swift */; };
 		F796A00F35298A2649737C87 /* Pods_Ciberchat.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5D2B054A9F41D57A26790A6B /* Pods_Ciberchat.framework */; };
@@ -43,6 +44,7 @@
 		120EF0E2253BD79200F73AB7 /* PerfilViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PerfilViewController.swift; sourceTree = "<group>"; };
 		120EF0E7253BE06C00F73AB7 /* Extensiones.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensiones.swift; sourceTree = "<group>"; };
 		123A9CA325463DE30092952E /* ChatViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatViewController.swift; sourceTree = "<group>"; };
+		12558DF92558548E003FAB8D /* StorageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageManager.swift; sourceTree = "<group>"; };
 		12742E8F253D0D5B007961AC /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "../../../Downloads/GoogleService-Info.plist"; sourceTree = "<group>"; };
 		12A3687B253DF7DD00C3A9DE /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
 		237009A52A815474D4A4EBB8 /* Pods-Ciberchat.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Ciberchat.release.xcconfig"; path = "Target Support Files/Pods-Ciberchat/Pods-Ciberchat.release.xcconfig"; sourceTree = "<group>"; };
@@ -138,6 +140,7 @@
 				120EF0B8253BD34100F73AB7 /* SceneDelegate.swift */,
 				120EF0E7253BE06C00F73AB7 /* Extensiones.swift */,
 				12A3687B253DF7DD00C3A9DE /* DatabaseManager.swift */,
+				12558DF92558548E003FAB8D /* StorageManager.swift */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -322,6 +325,7 @@
 				120EF0DD253BD74D00F73AB7 /* ReproductorVideoViewController.swift in Sources */,
 				123A9CA425463DE30092952E /* ChatViewController.swift in Sources */,
 				120EF0DA253BD72800F73AB7 /* VisualizadorFotoViewController.swift in Sources */,
+				12558DFA2558548E003FAB8D /* StorageManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

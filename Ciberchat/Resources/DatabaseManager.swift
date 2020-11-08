@@ -12,6 +12,12 @@ final class DatabaseManager {
     static let shared = DatabaseManager()
     
     private let database = Database.database().reference()
+    
+    static func safeEmail(email: String) -> String{
+        var safeEmail = email.replacingOccurrences(of: ".", with: "-")
+        safeEmail = safeEmail.replacingOccurrences(of: "@", with: "-")
+        return safeEmail
+    }
 }
 
 extension DatabaseManager{
@@ -30,11 +36,18 @@ extension DatabaseManager{
     }
     
     ///Inserta a un nuevo usuario a la Base de datos
-    public func insertarUsuario(with user: CiberchatUsuario){
+    public func insertarUsuario(with user: CiberchatUsuario, termino: @escaping (Bool) -> Void){
         database.child(user.safeEmail).setValue([
                                                 "nombres":user.nombres,
                                                 "apellidos":user.apellidos
-        ])
+        ], withCompletionBlock: {error, _ in
+            guard error == nil else {
+                print("Fallo al escribir en la BD")
+                termino(false)
+                return
+            }
+            termino(true)
+        })
     }
 }
 
@@ -48,5 +61,7 @@ struct CiberchatUsuario{
         safeEmail = safeEmail.replacingOccurrences(of: "@", with: "-")
         return safeEmail
     }
-    //let fotoPerfilUrl: String
+    var fotoPerfilNombreArchivo: String {
+        return "\(safeEmail)_perfil_imagen.png"
+    }
 }

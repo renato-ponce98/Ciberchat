@@ -199,8 +199,28 @@ class RegistroViewController: UIViewController {
                     print("Error creando usuario")
                     return
                 }
-                
-                DatabaseManager.shared.insertarUsuario(with: CiberchatUsuario(nombres: nombres, apellidos: apellidos, email: email))
+                let ciberchatUsuario = CiberchatUsuario(nombres: nombres, apellidos: apellidos, email: email)
+                DatabaseManager.shared.insertarUsuario(with: ciberchatUsuario, termino: {success in
+                    if success{
+                        //subir imagen
+                        guard let image = strongSelf.imageView.image, let data = image.pngData() else {
+                            return
+                        }
+                        
+                        let nombreArchivo = ciberchatUsuario.fotoPerfilNombreArchivo
+                        StorageManager.shared.subirImagenPerfil(with: data,
+                                                                nombreArchivo: nombreArchivo,
+                                                                termino: {resultados in
+                                                                    switch resultados {
+                                                                    case .success(let downloadUrl):
+                                                                        UserDefaults.standard.set(downloadUrl, forKey: "perfil_imagen_url")
+                                                                        print(downloadUrl)
+                                                                    case .failure(let error):
+                                                                        print("Sorage manager error: \(error)")
+                                                                    }
+                                                                })
+                    }
+                })
                 strongSelf.navigationController?.dismiss(animated: true, completion: nil)
             })
         })
