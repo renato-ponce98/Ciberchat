@@ -46,8 +46,54 @@ extension DatabaseManager{
                 termino(false)
                 return
             }
-            termino(true)
+            
+            self.database.child("usuarios").observeSingleEvent(of: .value, with: { snapshot in
+                if var coleccionUsuarios = snapshot.value as? [[String:String]] {
+                    let newElement = [
+                        "nombre": user.nombres + " " + user.apellidos,
+                        "email": user.safeEmail
+                    ]
+                    coleccionUsuarios.append(newElement)
+                    
+                    self.database.child("usuarios").setValue(coleccionUsuarios, withCompletionBlock: { error, _ in
+                        guard error == nil else {
+                            termino(false)
+                            return
+                        }
+                        termino(true)
+                    })
+                }else {
+                    let nuevaColeccion: [[String : String]] = [
+                        [
+                            "nombre": user.nombres + " " + user.apellidos,
+                            "email": user.safeEmail
+                        ]
+                    ]
+                    
+                    self.database.child("usuarios").setValue(nuevaColeccion, withCompletionBlock: { error, _ in
+                        guard error == nil else {
+                            termino(false)
+                            return
+                        }
+                        termino(true)
+                    })
+                }
+            })
         })
+    }
+    public func obtenerUsuarios(completion: @escaping (Result<[[String: String]], Error>) -> Void){
+        database.child("usuarios").observeSingleEvent(of: .value, with: {snapshot in
+            guard let value = snapshot.value as? [[String: String]] else {
+                completion(.failure(DatabaseError.falloAlObtener))
+                return
+            }
+            
+            completion(.success(value))
+        })
+    }
+    
+    public enum DatabaseError: Error {
+        case falloAlObtener
     }
 }
 
