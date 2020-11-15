@@ -9,15 +9,30 @@ import UIKit
 import FirebaseAuth
 import JGProgressHUD
 
+struct Conversacion{
+    let id: String
+    let nombre: String
+    let otroUsuarioEmail: String
+    let ultimoMensaje: UltimoMensaje
+}
+
+struct UltimoMensaje{
+    let fecha: String
+    let texto: String
+    let visto: Bool
+}
+
 class ConversacionesViewController: UIViewController {
     
     private let spinner = JGProgressHUD(style: .dark)
     
+    private var conversaciones = [Conversacion]()
+    
     private let tableView: UITableView = {
        let table = UITableView()
         table.isHidden = true
-        table.register(UITableViewCell.self,
-                       forCellReuseIdentifier: "cell")
+        table.register(ConversacionTableViewCell.self,
+                       forCellReuseIdentifier: ConversacionTableViewCell.identificador)
         return table
     }()
     
@@ -40,6 +55,31 @@ class ConversacionesViewController: UIViewController {
         view.addSubview(noConversacionesLabel)
         setearTableView()
         recuperarConversaciones()
+        empezarEscucharConversaciones()
+    }
+    
+    private func empezarEscucharConversaciones(){
+        guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
+            return
+        }
+        let safeEmail = DatabaseManager.safeEmail(email: email)
+        
+        DatabaseManager.shared.obtenerTodasConversaciones(for: safeEmail, completion: { [weak self] resultado in
+            switch resultado{
+            case .success(let conversaciones):
+                guard !conversaciones.isEmpty else {
+                    return
+                }
+                self?.conversaciones = conversaciones
+                
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                }
+                
+            case .failure(let error):
+                print("Error al obtener: \(error)")
+            }
+        })
     }
     
     @objc private func dioClickComposeButton(){
@@ -57,7 +97,7 @@ class ConversacionesViewController: UIViewController {
             return
         }
               
-        let vc = ChatViewController(with: email)
+        let vc = ChatViewController(with: email, id: nil)
         vc.esNuevaConversacion = true
         vc.title = nombre
         vc.navigationItem.largeTitleDisplayMode = .never
@@ -96,22 +136,27 @@ class ConversacionesViewController: UIViewController {
 
 extension ConversacionesViewController: UITableViewDelegate, UITableViewDataSource{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return conversaciones.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = "Hello World"
-        cell.accessoryType = .disclosureIndicator
+        let model = conversaciones[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: ConversacionTableViewCell.identificador, for: indexPath) as! ConversacionTableViewCell
+        cell.configurar(with: model)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        let model = conversaciones[indexPath.row]
         
-        let vc = ChatViewController(with: "rponce@gmail.com")
-        vc.title = "Jenny Smith"
+        let vc = ChatViewController(with: model.otroUsuarioEmail, id: model.id)
+        vc.title = model.nombre
         vc.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 120
     }
 }

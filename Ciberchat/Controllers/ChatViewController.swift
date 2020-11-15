@@ -60,17 +60,23 @@ class ChatViewController: MessagesViewController {
     }()
     public var esNuevaConversacion = false
     public let otroUsuarioEmail: String
+    private let conversacionId: String?
     private var mensajes = [Message]()
     private var remitente : Sender? {
         guard let email = UserDefaults.standard.value(forKey: "email") as? String else {
             return nil
         }
-        return Sender(photoURL: "", senderId: email, displayName: "Joe Smith")
+        let safeEmail = DatabaseManager.safeEmail(email: email)
+        return Sender(photoURL: "", senderId: safeEmail, displayName: "Yo")
     }
     
-    init(with email: String){
+    init(with email: String, id: String?){
+        self.conversacionId = id
         self.otroUsuarioEmail = email
         super.init(nibName: nil, bundle: nil)
+        if let conversacionId = conversacionId {
+            escucharPorMensajes(id: conversacionId, debeScrollFinal: true)
+        }
     }
     
     required init?(coder: NSCoder) {
@@ -84,6 +90,26 @@ class ChatViewController: MessagesViewController {
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
         messageInputBar.delegate = self
+    }
+    
+    private func escucharPorMensajes(id: String, debeScrollFinal: Bool){
+        DatabaseManager.shared.obtenerTodosMensajesParaConversacion(with: id, completion: { [weak self] resultado in
+            switch resultado {
+            case .success(let mensajes):
+                guard !mensajes.isEmpty else {
+                    return
+                }
+                self?.mensajes = mensajes
+                
+                DispatchQueue.main.async {
+                    self?.messagesCollectionView.reloadDataAndKeepOffset()
+                    if debeScrollFinal {
+                        self?.messagesCollectionView.scrollToBottom()
+                    }                }
+            case .failure(let error):
+                print("fallo al obtener mensajes: \(error)")
+            }
+        })
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -106,7 +132,7 @@ extension ChatViewController: InputBarAccessoryViewDelegate{
         //Enviar mensaje
         if esNuevaConversacion{
             let mensaje = Message(sender: remitente, messageId: mensajeId, sentDate: Date(), kind: .text(text))
-            DatabaseManager.shared.crearNuevaConversacin(with: otroUsuarioEmail, primerMensaje: mensaje, completion: {success in
+            DatabaseManager.shared.crearNuevaConversacin(with: otroUsuarioEmail, nombre: self.title ?? "Usuario", primerMensaje: mensaje, completion: {success in
                 if success {
                     print("Mensaje Enviado")
                 }else{
@@ -139,7 +165,6 @@ extension ChatViewController:  MessagesDataSource, MessagesLayoutDelegate, Messa
             return sender
         }
         fatalError("El remitente es nulo")
-        return Sender(photoURL: "", senderId: "123", displayName: "")
     }
     
     func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {

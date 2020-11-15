@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		12008B66256193E2007F5F18 /* ConversacionTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12008B65256193E2007F5F18 /* ConversacionTableViewCell.swift */; };
 		120EF0B7253BD34100F73AB7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0B6253BD34100F73AB7 /* AppDelegate.swift */; };
 		120EF0B9253BD34100F73AB7 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0B8253BD34100F73AB7 /* SceneDelegate.swift */; };
 		120EF0BB253BD34100F73AB7 /* ConversacionesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120EF0BA253BD34100F73AB7 /* ConversacionesViewController.swift */; };
@@ -28,6 +29,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		12008B65256193E2007F5F18 /* ConversacionTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversacionTableViewCell.swift; sourceTree = "<group>"; };
 		120EF0B3253BD34100F73AB7 /* Ciberchat.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ciberchat.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		120EF0B6253BD34100F73AB7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		120EF0B8253BD34100F73AB7 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -115,6 +117,7 @@
 			children = (
 				120EF0D1253BD56600F73AB7 /* Storyboards */,
 				120EF0BF253BD34300F73AB7 /* Assets.xcassets */,
+				12008B65256193E2007F5F18 /* ConversacionTableViewCell.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -322,6 +325,7 @@
 				120EF0B7253BD34100F73AB7 /* AppDelegate.swift in Sources */,
 				120EF0D7253BD6B500F73AB7 /* RegistroViewController.swift in Sources */,
 				120EF0B9253BD34100F73AB7 /* SceneDelegate.swift in Sources */,
+				12008B66256193E2007F5F18 /* ConversacionTableViewCell.swift in Sources */,
 				120EF0DD253BD74D00F73AB7 /* ReproductorVideoViewController.swift in Sources */,
 				123A9CA425463DE30092952E /* ChatViewController.swift in Sources */,
 				120EF0DA253BD72800F73AB7 /* VisualizadorFotoViewController.swift in Sources */,
