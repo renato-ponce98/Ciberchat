@@ -44,10 +44,26 @@ class ConversacionesViewController: UIViewController {
     
     @objc private func dioClickComposeButton(){
         let vc = NuevaConversacionViewController()
+        vc.completion = { [weak self] resultado in
+            self?.crearNuevaConversacion(resultado: resultado)
+        }
         let navVC = UINavigationController(rootViewController: vc)
         present(navVC, animated: true)
     }
     
+    private func crearNuevaConversacion(resultado: [String: String]){
+        guard let nombre = resultado["nombre"],
+              let email = resultado["email"] else {
+            return
+        }
+              
+        let vc = ChatViewController(with: email)
+        vc.esNuevaConversacion = true
+        vc.title = nombre
+        vc.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(vc, animated: true)
+    }
+        
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         tableView.frame = view.bounds
@@ -93,7 +109,7 @@ extension ConversacionesViewController: UITableViewDelegate, UITableViewDataSour
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         
-        let vc = ChatViewController()
+        let vc = ChatViewController(with: "rponce@gmail.com")
         vc.title = "Jenny Smith"
         vc.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(vc, animated: true)

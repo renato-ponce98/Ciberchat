@@ -9,6 +9,8 @@ import UIKit
 import JGProgressHUD
 
 class NuevaConversacionViewController: UIViewController {
+    public var completion: (([String: String]) -> (Void))?
+    
     private let spinner = JGProgressHUD(style: .dark)
     
     private var usuarios = [[String: String]]()
@@ -82,6 +84,11 @@ extension NuevaConversacionViewController: UITableViewDelegate, UITableViewDataS
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        //Iniciar conversacion
+        let targetUsuarioData = resultados[indexPath.row]
+        dismiss(animated: true, completion: { [weak self] in
+            self?.completion?(targetUsuarioData)
+        })
     }
 }
 
