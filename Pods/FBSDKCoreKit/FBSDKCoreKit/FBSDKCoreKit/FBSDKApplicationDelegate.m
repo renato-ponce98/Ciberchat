@@ -181,12 +181,10 @@ static UIApplicationState _applicationState;
             openURL:(NSURL *)url
             options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
 {
-  if (@available(iOS 9.0, *)) {
-    return [self application:application
-                      openURL:url
-            sourceApplication:options[UIApplicationOpenURLOptionsSourceApplicationKey]
-                   annotation:options[UIApplicationOpenURLOptionsAnnotationKey]];
-  }
+  return [self application:application
+                    openURL:url
+          sourceApplication:options[UIApplicationOpenURLOptionsSourceApplicationKey]
+                 annotation:options[UIApplicationOpenURLOptionsAnnotationKey]];
 
   return NO;
 }
@@ -470,7 +468,7 @@ static UIApplicationState _applicationState;
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   return [FBSDKSettings isAutoInitEnabled] || g_isSDKInitialized;
-  #pragma clange diagnostic pop
+  #pragma clang diagnostic pop
 }
 
 // MARK: - Testability

@@ -21,11 +21,13 @@
 #if !TARGET_OS_TV
 
  #import "FBSDKProfilePictureView.h"
+ #import "FBSDKProfilePictureView+Internal.h"
 
  #import "FBSDKAccessToken.h"
  #import "FBSDKInternalUtility.h"
  #import "FBSDKMaleSilhouetteIcon.h"
  #import "FBSDKMath.h"
+ #import "FBSDKProfile+Internal.h"
  #import "FBSDKUtility.h"
 
 @interface FBSDKProfilePictureViewState : NSObject
@@ -118,7 +120,7 @@
 - (instancetype)initWithFrame:(CGRect)frame
 {
   if ((self = [super initWithFrame:frame])) {
-    [self _configureProfilePictureView];
+    [self configureProfilePictureView];
   }
   return self;
 }
@@ -126,7 +128,7 @@
 - (instancetype)initWithCoder:(NSCoder *)decoder
 {
   if ((self = [super initWithCoder:decoder])) {
-    [self _configureProfilePictureView];
+    [self configureProfilePictureView];
   }
   return self;
 }
@@ -223,18 +225,9 @@
   });
 }
 
- #pragma mark - Helper Methods
+ #pragma mark - Internal Methods
 
-- (void)_accessTokenDidChangeNotification:(NSNotification *)notification
-{
-  if (![_profileID isEqualToString:@"me"] || !notification.userInfo[FBSDKAccessTokenDidChangeUserIDKey]) {
-    return;
-  }
-  _lastState = nil;
-  [self setNeedsImageUpdate];
-}
-
-- (void)_configureProfilePictureView
+- (void)configureProfilePictureView
 {
   _imageView = [[UIImageView alloc] initWithFrame:self.bounds];
   _imageView.autoresizingMask = (UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight);
@@ -249,6 +242,17 @@
                                                name:FBSDKAccessTokenDidChangeNotification
                                              object:nil];
 
+  [self setNeedsImageUpdate];
+}
+
+ #pragma mark - Helper Methods
+
+- (void)_accessTokenDidChangeNotification:(NSNotification *)notification
+{
+  if (![_profileID isEqualToString:@"me"] || !notification.userInfo[FBSDKAccessTokenDidChangeUserIDKey]) {
+    return;
+  }
+  _lastState = nil;
   [self setNeedsImageUpdate];
 }
 
@@ -302,6 +306,15 @@
   return size;
 }
 
+- (NSURL *)_getProfileImageUrl:(FBSDKProfilePictureViewState *)state
+{
+  // If there's an existing profile, use that profile's image url handler
+  if (FBSDKProfile.currentProfile != nil) {
+    return [FBSDKProfile.currentProfile imageURLForPictureMode:self.pictureMode size:state.size];
+  }
+  return [FBSDKProfile imageURLForProfileID:state.profileID PictureMode:self.pictureMode size:state.size];
+}
+
 - (void)_needsImageUpdate
 {
   _needsImageUpdate = NO;
@@ -334,15 +347,9 @@
     return;
   }
 
-  NSString *path = [[NSString alloc] initWithFormat:@"/%@/picture", [FBSDKUtility URLEncode:state.profileID]];
-  CGSize size = state.size;
-  NSMutableDictionary<NSString *, id> *parameters = [[NSMutableDictionary alloc] init];
-  [FBSDKTypeUtility dictionary:parameters setObject:@(size.width) forKey:@"width"];
-  [FBSDKTypeUtility dictionary:parameters setObject:@(size.height) forKey:@"height"];
-  [FBSDKTypeUtility dictionary:parameters setObject:accessToken.tokenString forKey:@"access_token"];
-  NSURL *imageURL = [FBSDKInternalUtility facebookURLWithHostPrefix:@"graph" path:path queryParameters:parameters error:NULL];
-
   __weak FBSDKProfilePictureView *weakSelf = self;
+
+  NSURL *imageURL = [self _getProfileImageUrl:state];
 
   NSURLRequest *request = [[NSURLRequest alloc] initWithURL:imageURL];
   NSURLSession *session = [NSURLSession sharedSession];

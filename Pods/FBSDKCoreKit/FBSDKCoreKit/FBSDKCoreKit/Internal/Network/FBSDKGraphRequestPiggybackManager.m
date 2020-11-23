@@ -25,13 +25,14 @@ static int const FBSDKTokenRefreshRetrySeconds = 60 * 60; // hour
 
 @implementation FBSDKGraphRequestPiggybackManager
 
+static NSDate *_lastRefreshTry = nil;
+
 + (void)addPiggybackRequests:(FBSDKGraphRequestConnection *)connection
 {
   if ([FBSDKSettings appID].length > 0) {
     BOOL safeForPiggyback = YES;
     for (FBSDKGraphRequestMetadata *metadata in connection.requests) {
-      if (![metadata.request.version isEqualToString:[FBSDKSettings graphAPIVersion]]
-          || metadata.request.hasAttachments) {
+      if (![self _safeForPiggyback:metadata.request]) {
         safeForPiggyback = NO;
         break;
       }
@@ -91,10 +92,10 @@ static int const FBSDKTokenRefreshRetrySeconds = 60 * 60; // hour
                                                                             flags:FBSDKGraphRequestFlagDisableErrorRecovery];
 
   [connection addRequest:extendRequest completionHandler:^(FBSDKGraphRequestConnection *innerConnection, id result, NSError *error) {
-    tokenString = result[@"access_token"];
-    expirationDateNumber = result[@"expires_at"];
-    dataAccessExpirationDateNumber = result[@"data_access_expiration_time"];
-    graphDomain = result[@"graph_domain"];
+    tokenString = [FBSDKTypeUtility dictionary:result objectForKey:@"access_token" ofType:NSString.class];
+    expirationDateNumber = [FBSDKTypeUtility dictionary:result objectForKey:@"expires_at" ofType:NSNumber.class];
+    dataAccessExpirationDateNumber = [FBSDKTypeUtility dictionary:result objectForKey:@"data_access_expiration_time" ofType:NSNumber.class];
+    graphDomain = [FBSDKTypeUtility dictionary:result objectForKey:@"graph_domain" ofType:NSString.class];
     expectingCallbackComplete();
   }];
   FBSDKGraphRequest *permissionsRequest = [[FBSDKGraphRequest alloc] initWithGraphPath:@"me/permissions"
@@ -124,19 +125,13 @@ static int const FBSDKTokenRefreshRetrySeconds = 60 * 60; // hour
   // don't piggy back more than once an hour as a cheap way of
   // retrying in cases of errors and preventing duplicate refreshes.
   // obviously this is not foolproof but is simple and sufficient.
-  static NSDate *lastRefreshTry;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    lastRefreshTry = [NSDate distantPast];
-  });
-
   NSDate *now = [NSDate date];
   NSDate *tokenRefreshDate = [FBSDKAccessToken currentAccessToken].refreshDate;
   if (tokenRefreshDate
-      && [now timeIntervalSinceDate:lastRefreshTry] > FBSDKTokenRefreshRetrySeconds
-      && [now timeIntervalSinceDate:tokenRefreshDate] > FBSDKTokenRefreshThresholdSeconds) {
+      && [now timeIntervalSinceDate:[self _lastRefreshTry]] > [self _tokenRefreshRetryInSeconds]
+      && [now timeIntervalSinceDate:tokenRefreshDate] > [self _tokenRefreshThresholdInSeconds]) {
     [self addRefreshPiggyback:connection permissionHandler:NULL];
-    lastRefreshTry = [NSDate date];
+    [self _setLastRefreshTry:[NSDate date]];
   }
 }
 
@@ -153,6 +148,35 @@ static int const FBSDKTokenRefreshRetrySeconds = 60 * 60; // hour
        completionHandler:^(FBSDKGraphRequestConnection *conn, id result, NSError *error) {
          [FBSDKServerConfigurationManager processLoadRequestResponse:result error:error appID:appID];
        }];
+}
+
++ (BOOL)_safeForPiggyback:(FBSDKGraphRequest *)request
+{
+  return [request.version isEqualToString:[FBSDKSettings graphAPIVersion]]
+  && !request.hasAttachments;
+}
+
++ (int)_tokenRefreshThresholdInSeconds
+{
+  return FBSDKTokenRefreshThresholdSeconds;
+}
+
++ (int)_tokenRefreshRetryInSeconds
+{
+  return FBSDKTokenRefreshRetrySeconds;
+}
+
++ (NSDate *)_lastRefreshTry
+{
+  if (!_lastRefreshTry) {
+    _lastRefreshTry = [NSDate distantPast];
+  }
+  return _lastRefreshTry;
+}
+
++ (void)_setLastRefreshTry:(NSDate *)date
+{
+  _lastRefreshTry = date;
 }
 
 @end

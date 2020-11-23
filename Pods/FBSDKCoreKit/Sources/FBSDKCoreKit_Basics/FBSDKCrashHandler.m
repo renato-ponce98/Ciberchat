@@ -20,7 +20,6 @@
 
 #import <UIKit/UIKit.h>
 
-#include <signal.h>
 #import <sys/utsname.h>
 
 #import "FBSDKLibAnalyzer.h"
@@ -29,26 +28,8 @@
 #define FBSDK_MAX_CRASH_LOGS 5
 #define FBSDK_CRASH_PATH_NAME @"instrument"
 #ifndef FBSDK_VERSION_STRING
- #define FBSDK_VERSION_STRING @"8.0.0"
+ #define FBSDK_VERSION_STRING @"8.2.0"
 #endif
-
-static const int fatalSignals[] =
-{
-  SIGBUS,
-  SIGFPE,
-  SIGILL,
-  SIGPIPE,
-  SIGSEGV,
-  SIGSYS,
-  SIGTRAP,
-};
-static const int fatalSignalsCount = sizeof(fatalSignals) / sizeof(int);
-static struct sigaction *previousSignalHandlers = NULL;
-
-static void installSignalsHandler(void);
-static void uninstallSignalsHandler(void);
-static void FBSDKSignalHandler(int signal, siginfo_t *signalInfo, void *userContext);
-static int signalIndex(int signal);
 
 static NSUncaughtExceptionHandler *previousExceptionHandler = NULL;
 static NSString *mappingTableIdentifier = NULL;
@@ -86,8 +67,7 @@ static BOOL _isTurnedOff;
 
 + (void)sendCrashLogs
 {
-  NSArray<id<FBSDKCrashObserving>> *observers = [_observers copy];
-  for (id<FBSDKCrashObserving> observer in observers) {
+  for (id<FBSDKCrashObserving> observer in _observers) {
     if (observer && [observer respondsToSelector:@selector(didReceiveCrashLogs:)]) {
       NSArray<NSDictionary<NSString *, id> *> *filteredCrashLogs = [self filterCrashLogs:observer.prefixes processedCrashLogs:_processedCrashLogs];
       [observer didReceiveCrashLogs:filteredCrashLogs];
@@ -124,7 +104,6 @@ static BOOL _isTurnedOff;
 {
   _isTurnedOff = YES;
   [FBSDKCrashHandler uninstallExceptionsHandler];
-  uninstallSignalsHandler();
   _observers = nil;
 }
 
@@ -136,25 +115,27 @@ static BOOL _isTurnedOff;
   static dispatch_once_t onceToken = 0;
   dispatch_once(&onceToken, ^{
     [FBSDKCrashHandler installExceptionsHandler];
-    installSignalsHandler();
     _processedCrashLogs = [self getProcessedCrashLogs];
   });
-  if (![_observers containsObject:observer]) {
-    [_observers addObject:observer];
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^(void) {
-      [self generateMethodMapping:observer];
-    });
-    [self sendCrashLogs];
+  @synchronized(_observers) {
+    if (![_observers containsObject:observer]) {
+      [_observers addObject:observer];
+      dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0), ^(void) {
+        [self generateMethodMapping:observer];
+      });
+      [self sendCrashLogs];
+    }
   }
 }
 
 + (void)removeObserver:(id<FBSDKCrashObserving>)observer
 {
-  if ([_observers containsObject:observer]) {
-    [_observers removeObject:observer];
-    if (_observers.count == 0) {
-      [FBSDKCrashHandler uninstallExceptionsHandler];
-      uninstallSignalsHandler();
+  @synchronized(_observers) {
+    if ([_observers containsObject:observer]) {
+      [_observers removeObject:observer];
+      if (_observers.count == 0) {
+        [FBSDKCrashHandler uninstallExceptionsHandler];
+      }
     }
   }
 }
@@ -185,64 +166,6 @@ static void FBSDKExceptionHandler(NSException *exception)
   }
 }
 
-static void installSignalsHandler()
-{
-  previousSignalHandlers = malloc(sizeof(*previousSignalHandlers) * (unsigned)fatalSignalsCount);
-  struct sigaction action = {{0}, 0, 0};
-  action.sa_flags = SA_SIGINFO | SA_ONSTACK;
-#if defined(__LP64__) && __LP64__
-  action.sa_flags |= SA_64REGSET;
-#endif
-  sigemptyset(&action.sa_mask);
-  for (size_t i = 0; i < fatalSignalsCount; i++) {
-    sigaddset(&action.sa_mask, fatalSignals[i]);
-  }
-  action.sa_sigaction = &FBSDKSignalHandler;
-
-  for (int i = 0; i < fatalSignalsCount; i++) {
-    sigaction(fatalSignals[i], &action, &previousSignalHandlers[i]);
-  }
-}
-
-static void uninstallSignalsHandler()
-{
-  for (int i = 0; i < fatalSignalsCount; i++) {
-    sigaction(fatalSignals[i], &previousSignalHandlers[i], NULL);
-  }
-}
-
-static void FBSDKSignalHandler(int signal, siginfo_t *signalInfo, void *userContext)
-{
-  NSMutableArray<NSString *> *callStack = [[NSThread callStackSymbols] mutableCopy];
-  if (callStack) {
-    NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, 2)];
-    if (callStack.count > 2 && [callStack objectsAtIndexes:indexSet]) {
-      [callStack removeObjectsAtIndexes:indexSet];
-    }
-  }
-  [FBSDKCrashHandler saveSignal:signal withCallStack:callStack];
-
-  int index = signalIndex(signal);
-  if (index > 0) {
-    if (previousSignalHandlers[index].sa_handler != SIG_IGN) {
-      void (*previousSignalHandler)(int, siginfo_t *, void *) = previousSignalHandlers[index].sa_sigaction;
-      if (previousSignalHandler != NULL) {
-        previousSignalHandler(signal, signalInfo, userContext);
-      }
-    }
-  }
-}
-
-static int signalIndex(int signal)
-{
-  for (int i = 0; i < fatalSignalsCount; i++) {
-    if (signal == fatalSignals[i]) {
-      return i;
-    }
-  }
-  return -1;
-}
-
 #pragma mark - Storage
 
 + (void)saveException:(NSException *)exception
@@ -252,17 +175,6 @@ static int signalIndex(int signal)
     [self saveCrashLog:@{
        kFBSDKCallstack : stackSymbols,
        kFBSDKCrashReason : exception.name,
-     }];
-  }
-}
-
-+ (void)saveSignal:(int)signal withCallStack:(NSArray<NSString *> *)callStack
-{
-  if (callStack) {
-    NSString *signalDescription = [NSString stringWithCString:strsignal(signal) encoding:NSUTF8StringEncoding] ?: [NSString stringWithFormat:@"SIGNUM(%i)", signal];
-    [self saveCrashLog:@{
-       kFBSDKCallstack : callStack,
-       kFBSDKCrashReason : signalDescription,
      }];
   }
 }

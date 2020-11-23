@@ -52,7 +52,7 @@ void fb_dispatch_on_default_thread(dispatch_block_t block)
   }
 }
 
-id getVariableFromInstance(NSObject *instance, NSString *variableName);
+_Nullable id getVariableFromInstance(NSObject *instance, NSString *variableName);
 
 @implementation FBSDKViewHierarchy
 
@@ -343,7 +343,7 @@ id getVariableFromInstance(NSObject *instance, NSString *variableName);
 id getVariableFromInstance(NSObject *instance, NSString *variableName)
 {
   if (instance == nil || variableName.length == 0) {
-    return nil;
+    return [NSNull null];
   }
 
   Ivar ivar = class_getInstanceVariable([instance class], variableName.UTF8String);
@@ -354,7 +354,7 @@ id getVariableFromInstance(NSObject *instance, NSString *variableName)
     }
   }
 
-  return nil;
+  return [NSNull null];
 }
 
 + (NSString *)getText:(nullable NSObject *)obj

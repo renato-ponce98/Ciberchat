@@ -38,6 +38,28 @@ final class StorageManager {
         })
     }
     
+    public func subirImagenMensaje(with data: Data, nombreArchivo: String, termino: @escaping subirTerminoImagen){
+        storage.child("mensaje_imagenes/\(nombreArchivo)").putData(data, metadata: nil, completion: { metadata, error in
+            guard error == nil else{
+                print("Fallo al subir imagen a firebase")
+                termino(.failure(StorageErrors.falloAlSubir))
+                return
+            }
+            
+            self.storage.child("mensaje_imagenes/\(nombreArchivo)").downloadURL(completion: {url, error in
+                guard let url = url else {
+                    print("Fallo al obtener url de descarga")
+                    termino(.failure(StorageErrors.falloAlObtenerUrl))
+                    return
+                }
+                
+                let urlString = url.absoluteString
+                print("Url de descarga: \(urlString)")
+                termino(.success(urlString))
+            })
+        })
+    }
+    
     public enum StorageErrors: Error {
         case falloAlSubir
         case falloAlObtenerUrl

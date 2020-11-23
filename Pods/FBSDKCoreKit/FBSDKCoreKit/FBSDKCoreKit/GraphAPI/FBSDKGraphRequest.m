@@ -44,13 +44,17 @@ FBSDKHTTPMethod FBSDKHTTPMethodDELETE = @"DELETE";
 
 - (instancetype)initWithGraphPath:(NSString *)graphPath
 {
-  return [self initWithGraphPath:graphPath parameters:@{}];
+  return [self initWithGraphPath:graphPath parameters:@{@"fields" : @""}];
 }
 
 - (instancetype)initWithGraphPath:(NSString *)graphPath
                        HTTPMethod:(FBSDKHTTPMethod)method
 {
-  return [self initWithGraphPath:graphPath parameters:@{} HTTPMethod:method];
+  if (method == FBSDKHTTPMethodGET) {
+    return [self initWithGraphPath:graphPath parameters:@{@"fields" : @""} HTTPMethod:method];
+  } else {
+    return [self initWithGraphPath:graphPath parameters:@{} HTTPMethod:method];
+  }
 }
 
 - (instancetype)initWithGraphPath:(NSString *)graphPath
@@ -174,7 +178,7 @@ FBSDKHTTPMethod FBSDKHTTPMethodDELETE = @"DELETE";
   #pragma clang diagnostic push
   #pragma clang diagnostic ignored "-Wdeprecated-declarations"
   NSURL *parsedURL = [NSURL URLWithString:[baseUrl stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
-  #pragma clang pop
+  #pragma clang diagnostic pop
 
   if ([httpMethod isEqualToString:FBSDKHTTPMethodPOST] && !forBatch) {
     return baseUrl;

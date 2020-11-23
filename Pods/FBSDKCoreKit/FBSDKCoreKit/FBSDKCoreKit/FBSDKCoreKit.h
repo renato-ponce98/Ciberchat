@@ -43,6 +43,7 @@
   #import <FBSDKCoreKit/FBSDKAppLink.h>
   #import <FBSDKCoreKit/FBSDKAppLinkNavigation.h>
   #import <FBSDKCoreKit/FBSDKAppLinkResolver.h>
+  #import <FBSDKCoreKit/FBSDKAppLinkResolverRequestBuilder.h>
   #import <FBSDKCoreKit/FBSDKAppLinkResolving.h>
   #import <FBSDKCoreKit/FBSDKAppLinkReturnToRefererController.h>
   #import <FBSDKCoreKit/FBSDKAppLinkReturnToRefererView.h>
@@ -79,6 +80,7 @@
   #import "FBSDKAppLink.h"
   #import "FBSDKAppLinkNavigation.h"
   #import "FBSDKAppLinkResolver.h"
+  #import "FBSDKAppLinkResolverRequestBuilder.h"
   #import "FBSDKAppLinkResolving.h"
   #import "FBSDKAppLinkReturnToRefererController.h"
   #import "FBSDKAppLinkReturnToRefererView.h"
@@ -98,5 +100,5 @@
 
 #endif
 
-#define FBSDK_VERSION_STRING @"8.0.0"
+#define FBSDK_VERSION_STRING @"8.2.0"
 #define FBSDK_TARGET_PLATFORM_VERSION @"v8.0"
