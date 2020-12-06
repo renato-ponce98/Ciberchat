@@ -9,12 +9,12 @@ import UIKit
 import JGProgressHUD
 
 class NuevaConversacionViewController: UIViewController {
-    public var completion: (([String: String]) -> (Void))?
+    public var completion: ((BuscarResultado) -> (Void))?
     
     private let spinner = JGProgressHUD(style: .dark)
     
     private var usuarios = [[String: String]]()
-    private var resultados = [[String: String]]()
+    private var resultados = [BuscarResultado]()
     private var hasFetched = false
     
     private let barraBusqueda: UISearchBar = {
@@ -26,8 +26,8 @@ class NuevaConversacionViewController: UIViewController {
     private let tableView: UITableView = {
         let table = UITableView()
         table.isHidden = true
-        table.register(UITableViewCell.self,
-                       forCellReuseIdentifier: "cell")
+        table.register(NuevaConversacionCell.self,
+                       forCellReuseIdentifier: NuevaConversacionCell.identificador)
         return table
     }()
     
@@ -50,7 +50,7 @@ class NuevaConversacionViewController: UIViewController {
         tableView.dataSource = self
         
         barraBusqueda.delegate = self
-        view.backgroundColor = .white
+        view.backgroundColor = .systemBackground
         navigationController?.navigationBar.topItem?.titleView = barraBusqueda
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancelar",
                                                             style: .done,
@@ -77,8 +77,9 @@ extension NuevaConversacionViewController: UITableViewDelegate, UITableViewDataS
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = resultados[indexPath.row]["nombre"]
+        let modelo = resultados[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: NuevaConversacionCell.identificador, for: indexPath) as! NuevaConversacionCell
+        cell.configurar(with: modelo)
         return cell
     }
     
@@ -89,6 +90,10 @@ extension NuevaConversacionViewController: UITableViewDelegate, UITableViewDataS
         dismiss(animated: true, completion: { [weak self] in
             self?.completion?(targetUsuarioData)
         })
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 70
     }
 }
 
@@ -124,18 +129,30 @@ extension NuevaConversacionViewController: UISearchBarDelegate {
     }
     
     func filtrarUsuarios(with term: String){
-        guard hasFetched else {
+        guard let actualUsuarioEmail = UserDefaults.standard.value(forKey: "email") as? String, hasFetched else {
             return
         }
         
+        let safeEmail = DatabaseManager.safeEmail(email: actualUsuarioEmail)
+        
         self.spinner.dismiss()
         
-        let resultados: [[String: String]] =  self.usuarios.filter({
+        let resultados: [BuscarResultado] =  self.usuarios.filter({
+            guard let email = $0["email"],
+                  email != safeEmail else {
+                return false
+            }
             guard let name = $0["nombre"]?.lowercased() else {
                 return false
             }
             
             return name.hasPrefix(term.lowercased())
+        }).compactMap ({
+            guard let email = $0["email"],let name = $0["nombre"] else {
+                return nil
+            }
+            
+            return BuscarResultado(nombre: name, email: email)
         })
         
         self.resultados = resultados
@@ -154,4 +171,9 @@ extension NuevaConversacionViewController: UISearchBarDelegate {
             self.tableView.reloadData()
         }
     }
+}
+
+struct BuscarResultado {
+    let nombre: String
+    let email: String
 }

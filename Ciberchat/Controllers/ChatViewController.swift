@@ -9,6 +9,9 @@ import UIKit
 import MessageKit
 import InputBarAccessoryView
 import SDWebImage
+import AVFoundation
+import AVKit
+import CoreLocation
 
 struct Message: MessageType{
     public var sender: SenderType
@@ -56,6 +59,13 @@ struct Sender: SenderType{
     public var photoURL: String
     public var senderId: String
     public var displayName: String
+}
+
+
+struct Location: LocationItem {
+    var location: CLLocation
+    var size: CGSize
+    
 }
 
 class ChatViewController: MessagesViewController {
@@ -119,15 +129,54 @@ class ChatViewController: MessagesViewController {
         actionSheet.addAction(UIAlertAction(title: "Foto", style: .default, handler: {[weak self] _ in
             self?.presentarFotoInputActionsheet()
         }))
-        actionSheet.addAction(UIAlertAction(title: "Video", style: .default, handler: { _ in
-            
+        actionSheet.addAction(UIAlertAction(title: "Video", style: .default, handler: {[weak self] _ in
+            self?.presentarVideoInputActionsheet()
         }))
         actionSheet.addAction(UIAlertAction(title: "Audio", style: .default, handler: {_ in
             
         }))
+        actionSheet.addAction(UIAlertAction(title: "Ubicacion", style: .default, handler: { [weak self] _ in
+            self?.presentarLocationPicker()
+        }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
         
         present(actionSheet, animated: true )
+    }
+    
+    private func presentarLocationPicker(){
+        let vc = LocationPickerViewController(coordinates: nil)
+        vc.title = "Escojer ubicacion"
+        vc.navigationItem.largeTitleDisplayMode = .never
+        vc.completion = { [weak self] selectedCoordenadas in
+            
+            guard let strongSelf = self else {
+                return
+            }
+            
+            guard
+                let mensajeId = strongSelf.crearMensajeId(),
+                let conversacionId = strongSelf.conversacionId,
+                  let nombre = strongSelf.title,
+                let remitente = strongSelf.remitente else {
+                return
+            }
+            
+            let longitud: Double = selectedCoordenadas.longitude
+            let latitud: Double = selectedCoordenadas.latitude
+            
+            let location = Location(location: CLLocation(latitude: latitud, longitude: longitud), size: .zero)
+            
+            let mensaje = Message(sender: remitente, messageId: mensajeId, sentDate: Date(), kind: .location(location))
+            DatabaseManager.shared.enviarMensaje(to: conversacionId, otroUsuarioEmail: strongSelf.otroUsuarioEmail, nombre: nombre, nuevoMensaje: mensaje, completion: {success in
+                if success {
+                    print("se envio Ubicacion")
+                }else {
+                    print("fallo al enviar mensaje")
+                }
+            })
+
+        }
+        navigationController?.pushViewController(vc, animated: true)
     }
     
     private func presentarFotoInputActionsheet(){
@@ -144,6 +193,32 @@ class ChatViewController: MessagesViewController {
             picker.sourceType = .photoLibrary
             picker.delegate = self
             picker.allowsEditing = true
+            self?.present(picker, animated: true)
+
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .default, handler: nil))
+        
+        present(actionSheet, animated: true )
+    }
+    
+    private func presentarVideoInputActionsheet(){
+        let actionSheet = UIAlertController(title: "Adjuntar Video", message: "De donde te gustaria adjuntar el video?", preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Camara", style: .default, handler: {[weak self] _ in
+            let picker = UIImagePickerController()
+            picker.sourceType = .camera
+            picker.delegate = self
+            picker.mediaTypes = ["public.movie"]
+            picker.videoQuality = .typeMedium
+            picker.allowsEditing = true
+            self?.present(picker, animated: true)
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Galeria", style: .default, handler: {[weak self] _ in
+            let picker = UIImagePickerController()
+            picker.sourceType = .photoLibrary
+            picker.delegate = self
+            picker.allowsEditing = true
+            picker.mediaTypes = ["public.movie"]
+            picker.videoQuality = .typeMedium
             self?.present(picker, animated: true)
 
         }))
@@ -186,8 +261,7 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
         picker.dismiss(animated: true, completion: nil)
-        guard let imagen = info[UIImagePickerController.InfoKey.editedImage] as? UIImage,
-              let imagenData = imagen.pngData(),
+        guard
               let mensajeId = crearMensajeId(),
               let conversacionId = conversacionId,
               let nombre = self.title,
@@ -195,36 +269,67 @@ extension ChatViewController: UIImagePickerControllerDelegate, UINavigationContr
             return
         }
         
-        let nombreArchivo = "foto_mensaje_"+mensajeId.replacingOccurrences(of: " ", with: "-") + ".png"
-        
-        StorageManager.shared.subirImagenMensaje(with: imagenData, nombreArchivo: nombreArchivo, termino: {[weak self] resultado in
-            guard let strongSelf = self else {
-                return
-            }
-            switch resultado {
-            case .success(let urlString):
-                print("Imagen enviada: \(urlString)")
-                
-                guard let url = URL(string: urlString),
-                      let placeholder = UIImage(systemName: "plus") else {
+        if let imagen = info[.editedImage] as? UIImage, let imagenData = imagen.pngData() {
+            let nombreArchivo = "foto_mensaje_"+mensajeId.replacingOccurrences(of: " ", with: "-") + ".png"
+            
+            StorageManager.shared.subirImagenMensaje(with: imagenData, nombreArchivo: nombreArchivo, termino: {[weak self] resultado in
+                guard let strongSelf = self else {
                     return
                 }
-                
-                let media = Media(url: url, image: nil, placeholderImage: placeholder, size: .zero)
-                
-                let mensaje = Message(sender: remitente, messageId: mensajeId, sentDate: Date(), kind: .photo(media))
-                DatabaseManager.shared.enviarMensaje(to: conversacionId, otroUsuarioEmail: strongSelf.otroUsuarioEmail, nombre: nombre, nuevoMensaje: mensaje, completion: {success in
-                    if success {
-                        print("se envio Imagen")
-                    }else {
-                        print("fallo al enviar mensaje")
+                switch resultado {
+                case .success(let urlString):
+                    print("Imagen enviada: \(urlString)")
+                    
+                    guard let url = URL(string: urlString),
+                          let placeholder = UIImage(systemName: "plus") else {
+                        return
                     }
-                })
-            case .failure(let error):
-                print("Hubo un error al enviar la imagen \(error)")
-            }
-        })
-        
+                    
+                    let media = Media(url: url, image: nil, placeholderImage: placeholder, size: .zero)
+                    
+                    let mensaje = Message(sender: remitente, messageId: mensajeId, sentDate: Date(), kind: .photo(media))
+                    DatabaseManager.shared.enviarMensaje(to: conversacionId, otroUsuarioEmail: strongSelf.otroUsuarioEmail, nombre: nombre, nuevoMensaje: mensaje, completion: {success in
+                        if success {
+                            print("se envio Imagen")
+                        }else {
+                            print("fallo al enviar mensaje")
+                        }
+                    })
+                case .failure(let error):
+                    print("Hubo un error al enviar la imagen \(error)")
+                }
+            })
+        } else if let videoUrl = info[.mediaURL] as? URL {
+            let nombreArchivo = "video_mensaje_"+mensajeId.replacingOccurrences(of: " ", with: "-") + ".mov"
+            
+            StorageManager.shared.subirVideoMensaje(with: videoUrl, nombreArchivo: nombreArchivo, termino: {[weak self] resultado in
+                guard let strongSelf = self else {
+                    return
+                }
+                switch resultado {
+                case .success(let urlString):
+                    print("Video enviado: \(urlString)")
+                    
+                    guard let url = URL(string: urlString),
+                          let placeholder = UIImage(systemName: "plus") else {
+                        return
+                    }
+                    
+                    let media = Media(url: url, image: nil, placeholderImage: placeholder, size: .zero)
+                    
+                    let mensaje = Message(sender: remitente, messageId: mensajeId, sentDate: Date(), kind: .video(media))
+                    DatabaseManager.shared.enviarMensaje(to: conversacionId, otroUsuarioEmail: strongSelf.otroUsuarioEmail, nombre: nombre, nuevoMensaje: mensaje, completion: {success in
+                        if success {
+                            print("se envio video")
+                        }else {
+                            print("fallo al enviar mensaje")
+                        }
+                    })
+                case .failure(let error):
+                    print("Hubo un error al enviar el video \(error)")
+                }
+            })
+        }
         
     }
 }
@@ -316,6 +421,23 @@ extension ChatViewController:  MessagesDataSource, MessagesLayoutDelegate, Messa
 }
 
 extension ChatViewController: MessageCellDelegate {
+    func didTapMessage(in cell: MessageCollectionViewCell) {
+        guard let indexPath = messagesCollectionView.indexPath(for: cell) else {
+            return
+        }
+        let mensaje = mensajes[indexPath.section]
+        
+        switch mensaje.kind {
+        case .location(let locationData):
+            let coordinates = locationData.location.coordinate
+            let vc = LocationPickerViewController(coordinates: coordinates)
+            vc.title = "Ubicacion"
+            self.navigationController?.pushViewController(vc, animated: true)
+        
+        default:
+            break
+        }
+    }
     func didTapImage(in cell: MessageCollectionViewCell) {
         guard let indexPath = messagesCollectionView.indexPath(for: cell) else {
             return
@@ -329,6 +451,14 @@ extension ChatViewController: MessageCellDelegate {
             }
             let vc = VisualizadorFotoViewController(with: imagenUrl)
             self.navigationController?.pushViewController(vc, animated: true)
+        case .video(let media):
+            guard let videoUrl = media.url else {
+                return
+            }
+            
+            let vc = AVPlayerViewController()
+            vc.player = AVPlayer(url: videoUrl)
+            present(vc, animated: true)
         default:
             break
         }

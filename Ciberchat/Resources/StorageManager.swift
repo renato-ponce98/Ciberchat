@@ -39,14 +39,14 @@ final class StorageManager {
     }
     
     public func subirImagenMensaje(with data: Data, nombreArchivo: String, termino: @escaping subirTerminoImagen){
-        storage.child("mensaje_imagenes/\(nombreArchivo)").putData(data, metadata: nil, completion: { metadata, error in
+        storage.child("mensaje_imagenes/\(nombreArchivo)").putData(data, metadata: nil, completion: { [weak self] metadata, error in
             guard error == nil else{
                 print("Fallo al subir imagen a firebase")
                 termino(.failure(StorageErrors.falloAlSubir))
                 return
             }
             
-            self.storage.child("mensaje_imagenes/\(nombreArchivo)").downloadURL(completion: {url, error in
+            self?.storage.child("mensaje_imagenes/\(nombreArchivo)").downloadURL(completion: {url, error in
                 guard let url = url else {
                     print("Fallo al obtener url de descarga")
                     termino(.failure(StorageErrors.falloAlObtenerUrl))
@@ -59,6 +59,29 @@ final class StorageManager {
             })
         })
     }
+    
+    public func subirVideoMensaje(with fileUrl: URL, nombreArchivo: String, termino: @escaping subirTerminoImagen){
+        storage.child("mensaje_videos/\(nombreArchivo)").putFile(from: fileUrl, metadata: nil, completion: { [weak self] metadata, error in
+            guard error == nil else{
+                print("Fallo al subir video a firebase: \(error)")
+                termino(.failure(StorageErrors.falloAlSubir))
+                return
+            }
+            
+            self?.storage.child("mensaje_videos/\(nombreArchivo)").downloadURL(completion: {url, error in
+                guard let url = url else {
+                    print("Fallo al obtener url de descarga")
+                    termino(.failure(StorageErrors.falloAlObtenerUrl))
+                    return
+                }
+                
+                let urlString = url.absoluteString
+                print("Url de descarga: \(urlString)")
+                termino(.success(urlString))
+            })
+        })
+    }
+
     
     public enum StorageErrors: Error {
         case falloAlSubir

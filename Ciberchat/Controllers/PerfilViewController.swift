@@ -9,15 +9,71 @@ import UIKit
 import FirebaseAuth
 import FBSDKLoginKit
 import GoogleSignIn
+import SDWebImage
+
+enum ProfileViewModelType {
+    case info, logout
+}
+
+struct ProfileViewModel {
+    let viewModelType: ProfileViewModelType
+    let title: String
+    let handler: (() -> Void)?
+}
 
 class PerfilViewController: UIViewController {
     
     @IBOutlet var tableView: UITableView!
     
-    let data = ["Cerrar sesion"]
+    var data = [ProfileViewModel]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        tableView.register(PerfilTableViewCell.self, forCellReuseIdentifier: PerfilTableViewCell.identificador)
+        data.append(ProfileViewModel(viewModelType: .info, title: "Nombre: \(UserDefaults.standard.value(forKey: "nombre") as? String ?? "Sin Nombre")", handler: nil))
+        data.append(ProfileViewModel(viewModelType: .info, title: "Email: \(UserDefaults.standard.value(forKey: "email") as? String ?? "Sin Email")", handler: nil))
+        data.append(ProfileViewModel(viewModelType: .logout, title: "Cerrar sesion", handler: {[weak self] in
+            
+            guard let strongSelf = self else {
+                return
+            }
+            let actionSheet = UIAlertController(title: "",
+                                          message: "",
+                                          preferredStyle: .actionSheet)
+            actionSheet.addAction(UIAlertAction(title:"Cerrar sesion",
+                                          style: .destructive,
+                                          handler: {[weak self] _ in
+                                            
+                                            guard let strongSelf = self else {
+                                                return
+                                            }
+                                            
+                                            // Cerrar sesion en facebook
+                                            FBSDKLoginKit.LoginManager().logOut()
+                                            
+                                            // Cerrar sesion en google
+                                            GIDSignIn.sharedInstance()?.signOut()
+                                            
+                                            do {
+                                                try FirebaseAuth.Auth.auth().signOut()
+                                                
+                                                let vc = LoginViewController()
+                                                let nav = UINavigationController(rootViewController: vc)
+                                                nav.modalPresentationStyle = .fullScreen
+                                                strongSelf.present(nav, animated: false)
+                                            } catch  {
+                                                print("Hubo un error al momento de Cerrar sesion")
+                                            }
+                                          }))
+            
+            actionSheet.addAction(UIAlertAction(title: "Cancelar",
+                                                style: .cancel,
+                                                handler: nil))
+            
+            strongSelf.present(actionSheet, animated: true)
+            
+            
+        }))
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         tableView.delegate = self
         tableView.dataSource = self
@@ -48,29 +104,16 @@ class PerfilViewController: UIViewController {
         
         headerview.addSubview(imageView)
         
-        StorageManager.shared.downloadURL(for: path, completion: { [weak self] resultado in
+        StorageManager.shared.downloadURL(for: path, completion: { resultado in
             switch resultado {
             case .success(let url):
-                self?.descargarImagen(imageView: imageView, url: url)
+                imageView.sd_setImage(with: url, completed: nil)
             case .failure(let error):
                 print("Fallo al obtener url de descarga: \(error)")
             }
         })
         
         return headerview
-    }
-    
-    func descargarImagen(imageView: UIImageView, url: URL){
-        URLSession.shared.dataTask(with: url, completionHandler: {data, _ , error in
-            guard let data = data, error == nil else {
-                return
-            }
-            
-            DispatchQueue.main.async{
-                let image = UIImage(data: data)
-                imageView.image = image
-            }
-        }).resume()
     }
 
 }
@@ -81,52 +124,29 @@ extension PerfilViewController: UITableViewDelegate, UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = data[indexPath.row]
-        cell.textLabel?.textAlignment = .center
-        cell.textLabel?.textColor = .red
+        let viewModel = data[indexPath.row]
+        let cell = tableView.dequeueReusableCell(withIdentifier: PerfilTableViewCell.identificador, for: indexPath) as! PerfilTableViewCell
+        cell.setUp(with: viewModel)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
-        let actionSheet = UIAlertController(title: "",
-                                      message: "",
-                                      preferredStyle: .actionSheet)
-        actionSheet.addAction(UIAlertAction(title:"Cerrar sesion",
-                                      style: .destructive,
-                                      handler: {[weak self] _ in
-                                        
-                                        guard let strongSelf = self else {
-                                            return
-                                        }
-                                        
-                                        // Cerrar sesion en facebook
-                                        FBSDKLoginKit.LoginManager().logOut()
-                                        
-                                        // Cerrar sesion en google
-                                        GIDSignIn.sharedInstance()?.signOut()
-                                        
-                                        do {
-                                            try FirebaseAuth.Auth.auth().signOut()
-                                            
-                                            let vc = LoginViewController()
-                                            let nav = UINavigationController(rootViewController: vc)
-                                            nav.modalPresentationStyle = .fullScreen
-                                            strongSelf.present(nav, animated: false)
-                                        } catch  {
-                                            print("Hubo un error al momento de Cerrar sesion")
-                                        }
-                                      }))
-        
-        actionSheet.addAction(UIAlertAction(title: "Cancelar",
-                                            style: .cancel,
-                                            handler: nil))
-        
-        present(actionSheet, animated: true)
-        
-        
-        
+        data[indexPath.row].handler?()
+    }
+}
+
+class PerfilTableViewCell: UITableViewCell{
+    static let identificador = "PerfilTableViewCell"
+    public func setUp(with viewModel: ProfileViewModel){
+        self.textLabel?.text = viewModel.title
+        switch viewModel.viewModelType {
+        case .info:
+            self.textLabel?.textAlignment = .left
+            self.selectionStyle = .none
+        case .logout:
+            self.textLabel?.textColor = .red
+            self.textLabel?.textAlignment = .center
+        }
     }
 }
