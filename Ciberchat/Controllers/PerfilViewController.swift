@@ -48,6 +48,9 @@ class PerfilViewController: UIViewController {
                                                 return
                                             }
                                             
+                                            UserDefaults.standard.setValue(nil, forKey: "email")
+                                            UserDefaults.standard.setValue(nil, forKey: "nombre")
+                                            
                                             // Cerrar sesion en facebook
                                             FBSDKLoginKit.LoginManager().logOut()
                                             
@@ -142,11 +145,11 @@ class PerfilTableViewCell: UITableViewCell{
         self.textLabel?.text = viewModel.title
         switch viewModel.viewModelType {
         case .info:
-            self.textLabel?.textAlignment = .left
-            self.selectionStyle = .none
+            textLabel?.textAlignment = .left
+            selectionStyle = .none
         case .logout:
-            self.textLabel?.textColor = .red
-            self.textLabel?.textAlignment = .center
+            textLabel?.textColor = .red
+            textLabel?.textAlignment = .center
         }
     }
 }

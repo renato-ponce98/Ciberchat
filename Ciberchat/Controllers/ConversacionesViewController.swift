@@ -56,7 +56,6 @@ class ConversacionesViewController: UIViewController {
         view.addSubview(tableView)
         view.addSubview(noConversacionesLabel)
         setearTableView()
-        recuperarConversaciones()
         empezarEscucharConversaciones()
         
         loginObserver = NotificationCenter.default.addObserver(forName: .LogInNotificacion,
@@ -85,8 +84,12 @@ class ConversacionesViewController: UIViewController {
             switch resultado{
             case .success(let conversaciones):
                 guard !conversaciones.isEmpty else {
+                    self?.tableView.isHidden = true
+                    self?.noConversacionesLabel.isHidden = false
                     return
                 }
+                self?.noConversacionesLabel.isHidden = true
+                self?.tableView.isHidden = false
                 self?.conversaciones = conversaciones
                 
                 DispatchQueue.main.async {
@@ -94,6 +97,9 @@ class ConversacionesViewController: UIViewController {
                 }
                 
             case .failure(let error):
+                self?.noConversacionesLabel.isHidden = true
+                self?.tableView.isHidden = true
+                self?.noConversacionesLabel.isHidden = false
                 print("Error al obtener: \(error)")
             }
         })
@@ -155,6 +161,7 @@ class ConversacionesViewController: UIViewController {
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         tableView.frame = view.bounds
+        noConversacionesLabel.frame = CGRect(x: 10, y: (view.height-100)/2, width: view.width-20, height: 100)
     }
 
     override func viewDidAppear(_ animated: Bool) {
@@ -175,10 +182,6 @@ class ConversacionesViewController: UIViewController {
     private func setearTableView(){
         tableView.delegate = self
         tableView.dataSource = self
-    }
-    
-    private func recuperarConversaciones(){
-        tableView.isHidden = false
     }
 }
 

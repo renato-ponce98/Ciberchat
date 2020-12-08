@@ -108,7 +108,7 @@ extension NuevaConversacionViewController: UISearchBarDelegate {
         resultados.removeAll()
         spinner.show(in: view)
         
-        self.searchUsers(query: text)
+        searchUsers(query: text)
     }
     
     func searchUsers(query: String){
@@ -137,7 +137,7 @@ extension NuevaConversacionViewController: UISearchBarDelegate {
         
         self.spinner.dismiss()
         
-        let resultados: [BuscarResultado] =  self.usuarios.filter({
+        let resultados: [BuscarResultado] =  usuarios.filter({
             guard let email = $0["email"],
                   email != safeEmail else {
                 return false
@@ -162,13 +162,13 @@ extension NuevaConversacionViewController: UISearchBarDelegate {
     
     func actualizarUI() {
         if resultados.isEmpty {
-            self.noResultadoLabel.isHidden = false
-            self.tableView.isHidden = true
+            noResultadoLabel.isHidden = false
+            tableView.isHidden = true
             
         }else{
-            self.noResultadoLabel.isHidden = false
-            self.tableView.isHidden = false
-            self.tableView.reloadData()
+            noResultadoLabel.isHidden = false
+            tableView.isHidden = false
+            tableView.reloadData()
         }
     }
 }

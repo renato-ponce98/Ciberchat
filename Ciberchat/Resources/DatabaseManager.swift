@@ -23,7 +23,7 @@ final class DatabaseManager {
 
 extension DatabaseManager {
     public func obtenerDataPara(path: String, completion: @escaping (Result<Any,Error>) -> Void){
-        self.database.child("\(path)").observeSingleEvent(of: .value, with: { snapshot in
+        database.child("\(path)").observeSingleEvent(of: .value, with: { snapshot in
             guard let value = snapshot.value else {
                 completion(.failure(DatabaseError.falloAlObtener))
                 return
@@ -52,14 +52,18 @@ extension DatabaseManager{
         database.child(user.safeEmail).setValue([
                                                 "nombres":user.nombres,
                                                 "apellidos":user.apellidos
-        ], withCompletionBlock: {error, _ in
+        ], withCompletionBlock: { [weak self] error, _ in
+            
+            guard let strongSelf = self else {
+                return
+            }
             guard error == nil else {
                 print("Fallo al escribir en la BD")
                 termino(false)
                 return
             }
             
-            self.database.child("usuarios").observeSingleEvent(of: .value, with: { snapshot in
+            strongSelf.database.child("usuarios").observeSingleEvent(of: .value, with: { snapshot in
                 if var coleccionUsuarios = snapshot.value as? [[String:String]] {
                     let newElement = [
                         "nombre": user.nombres + " " + user.apellidos,
@@ -67,7 +71,7 @@ extension DatabaseManager{
                     ]
                     coleccionUsuarios.append(newElement)
                     
-                    self.database.child("usuarios").setValue(coleccionUsuarios, withCompletionBlock: { error, _ in
+                    strongSelf.database.child("usuarios").setValue(coleccionUsuarios, withCompletionBlock: { error, _ in
                         guard error == nil else {
                             termino(false)
                             return
@@ -82,7 +86,7 @@ extension DatabaseManager{
                         ]
                     ]
                     
-                    self.database.child("usuarios").setValue(nuevaColeccion, withCompletionBlock: { error, _ in
+                    strongSelf.database.child("usuarios").setValue(nuevaColeccion, withCompletionBlock: { error, _ in
                         guard error == nil else {
                             termino(false)
                             return

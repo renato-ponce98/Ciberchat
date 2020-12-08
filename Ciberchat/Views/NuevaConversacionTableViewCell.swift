@@ -43,7 +43,7 @@ class NuevaConversacionCell: UITableViewCell {
     }
     
     public func configurar(with model: BuscarResultado){
-        self.usuarioNombreLabel.text = model.nombre
+        usuarioNombreLabel.text = model.nombre
         
         let path = "images/\(model.email)_perfil_imagen.png"
         StorageManager.shared.downloadURL(for: path, completion: { [weak self] resultado in

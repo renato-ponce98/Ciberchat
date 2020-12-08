@@ -199,6 +199,10 @@ class RegistroViewController: UIViewController {
                     print("Error creando usuario")
                     return
                 }
+                
+                UserDefaults.standard.setValue(email, forKey: "email")
+                UserDefaults.standard.setValue("\(nombres) \(apellidos)", forKey: "nombre")
+                
                 let ciberchatUsuario = CiberchatUsuario(nombres: nombres, apellidos: apellidos, email: email)
                 DatabaseManager.shared.insertarUsuario(with: ciberchatUsuario, termino: {success in
                     if success{
